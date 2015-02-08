@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html manifest="cache.manifest">
+  <head>
+  <link href='//fonts.googleapis.com/css?family=Open+Sans:400,300,700' rel='stylesheet' type='text/css'>
+  <link href='//cdnjs.cloudflare.com/ajax/libs/normalize/3.0.2/normalize.min.css' rel='stylesheet' type='text/css'>
+    <style type="text/css">
+    body {
+        background-color: #000;
+        height: 100vh;
+        width: 100vw;
+        overflow: hidden;
+        font-family: 'Open Sans', sans-serif;
+    }
+
+    #container {
+        height: 120vh;
+        width: 120vw;
+        position: absolute;
+        left: -10vw;
+        top: -10vh;
+    }
+
+      #background {
+      position: relative;
+
+        height: 120vh;
+        width: 120vw;
+
+        background-size: cover;
+        background-position: center center;
+
+        -webkit-filter: brightness(15%);
+      }
+
+      #nowPlaying {
+        position: absolute;
+        left: 20vw;
+        top: 40vh;
+        width: 80vw;
+      }
+
+      #playerHeader {
+        position: absolute;
+        left: 20vw;
+        top: 20vh;
+        width: 80vw;
+        padding-bottom: 1rem;
+        border-bottom: thin solid rgba(255,255,255,0.25);
+        color: #fff;
+        opacity: 0.50;
+      }
+
+      #playlistNameHeader {
+        font-size: 1.8rem;
+        color: #fff;
+        font-weight: 300;
+        text-transform: uppercase;
+      }
+
+      #nextSongTitle {
+        float:right;
+        position: absolute;
+        bottom: 0;
+        right: 0;
+        padding-bottom: 1rem;
+        font-size: 1rem;
+        font-weight: 400;
+        text-transform: uppercase;
+        text-align: right;
+      }
+
+      #albumArtwork {
+        width: 300px;
+        height: 300px;
+        border-style: none;
+        display: block;
+      }
+
+      #songNameHeader {
+        color: #fff;
+        font-size: 2.5rem;
+        font-weight: 300;
+        /*overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;*/
+      }
+
+      #songArtist {
+        color: #fff;
+        font-size: 1.5rem;
+        font-weight: 300;
+        padding-top: 2rem;
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+      }
+
+      #songTime {
+        color: #fff;
+        opacity: 0.8;
+        font-size: 0.8rem;
+        font-weight: 300;
+        margin-top: 1rem;
+      }
+
+      #progressBar {
+        position: relative;
+        background-color: #fff;
+        opacity: 0.50;
+        width: 0px;
+        height: 10px;
+      }
+
+      #artworkAndProgressDiv {
+        float: left;
+        border-radius: 10px;
+        margin-right: 40px;
+        overflow: hidden;
+        box-shadow: 2px 2px 10px 0px rgba(0,0,0,0.50);
+      }
+    </style>
+    <title>Receiver</title>
+  </head>
+  <body>
+  <div id="container">
+    <div id="background"></div>
+    <div id="playerHeader">
+        <span id="playlistNameHeader"></span>
+        <div id="nextSongTitle"></div>
+    </div>
+    <div id="nowPlaying">
+        <div id="artworkAndProgressDiv">
+            <img src="data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=" id="albumArtwork"/>
+            <div id="progressBar"></div>
+        </div>
+        <div id="songDetails">
+            <div id="songNameHeader"></div>
+            <div id="songArtist"></div>
+            <div id="songTime">
+                <span id="currentTime"></span> / <span id="totalTime"></span>
+            </div>
+        </div>
+    </div>
+  </div>
+  
+
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+    <script type="text/javascript" src="//www.gstatic.com/cast/sdk/libs/receiver/2.0.0/cast_receiver.js"></script>
+    <script src="//connect.soundcloud.com/sdk.js"></script>
+    <script src="../waveform.js"></script>
+    <script type="text/javascript">
+    var playlistUrl;
+    var playlistTracks;
+    var currentSongObj;
+    var currentSongNum;
+    var currentSongStream;
+
+    function setSongPercentage(percentage) {
+        if(typeof currentSongObj !== "undefined") {
+          currentSongObj.setPosition(200000);
+        }
+    }
+
+    function getPosition() {
+        if(typeof currentSongObj !== "undefined") {
+          alert(currentSongObj.position);
+        }
+    }
+
+    function seconds(seconds) {
+        var minutes = Math.floor(seconds/60);
+        var seconds = time - minutes * 60;
+        return (minutes + ":" + seconds);
+    };
+
+    function nextSong() {
+        //currentSongObj.destruct();
+        //$('#progressBar').fadeOut();
+        playSong(playlistTracks[++currentSongNum].permalink_url);
+    }
+
+    // Stream a song from a permalink_url
+    function playSong(url) {
+      //console.log(playlistTracks[currentSongNum]);
+        SC.get('/resolve', { url: url }, function(track) {
+            console.log(track);
+
+            // Set Header to title of track
+            $('#songNameHeader').text(track.title);
+            $('#songArtist').text("by: " + track.user.username);
+            $('#nextSongTitle').html("Track " + (currentSongNum + 1) + " of " + playlistTracks.length + "<br>"+ "Next: " + playlistTracks[currentSongNum + 1].title);
+
+            // Change artwork url to higher resolution version
+            if(track.artwork_url) {
+                track.artwork_url = track.artwork_url.replace("large.jpg", "t500x500.jpg");
+
+                // Set background and album artwork 
+                $("#background").css("background-image", 'url(' + track.artwork_url + ')');
+                $('#albumArtwork').prop("src", track.artwork_url);
+            }
+
+            // Set total song duration div
+            var time = new Date(track.duration);
+            $('#totalTime').text(time.getMinutes() + ":" + ("0" + time.getSeconds()).slice(-2));
+            //$('#progressBar').fadeIn();
+
+            var waveform = new Waveform({
+                container: document.getElementById("playerHeader"),
+                innerColor: "#333"
+            });
+
+            waveform.dataFromSoundCloudTrack(track);
+            var streamOptions = waveform.optionsForSyncedStream();
+            SC.stream(track.uri, streamOptions, function(stream){
+                window.exampleStream = stream;
+                stream.play();
+            });
+        });
+    };
+
+    function startPlaylist(playlistUrl) {
+      SC.initialize({
+          client_id: '0f315df4184429c38b459dee7652f515'
+        });
+
+        currentSongNum = 0;
+
+        SC.get('/resolve', { url: playlistUrl }, function(pl) {
+
+          playlistTracks = pl.tracks;
+          $('#playlistNameHeader').text("Playlist: " + pl.title);
+          playSong(playlistTracks[currentSongNum].permalink_url); 
+        });
+    }
+
+    window.onload = function() {
+        //cast.receiver.logger.setLevelValue(0);
+        window.castReceiverManager = cast.receiver.CastReceiverManager.getInstance();
+        console.log('Starting Receiver Manager');
+        
+        // handler for the 'ready' event
+        castReceiverManager.onReady = function(event) {
+          console.log('Received Ready event: ' + JSON.stringify(event.data));
+          window.castReceiverManager.setApplicationState("Application status is ready...");
+        };
+        
+        // handler for 'senderconnected' event
+        castReceiverManager.onSenderConnected = function(event) {
+          console.log('Received Sender Connected event: ' + event.data);
+          console.log(window.castReceiverManager.getSender(event.data).userAgent);
+        };
+        
+        // handler for 'senderdisconnected' event
+        castReceiverManager.onSenderDisconnected = function(event) {
+          console.log('Received Sender Disconnected event: ' + event.data);
+          if (window.castReceiverManager.getSenders().length == 0) {
+          window.close();
+        }
+        };
+        
+        // handler for 'systemvolumechanged' event
+        castReceiverManager.onSystemVolumeChanged = function(event) {
+          console.log('Received System Volume Changed event: ' + event.data['level'] + ' ' +
+              event.data['muted']);
+        };
+
+        // create a CastMessageBus to handle messages for a custom namespace
+        window.messageBus =
+          window.castReceiverManager.getCastMessageBus(
+              'urn:x-cast:com.thedbomb.hellochromecast');
+
+        // handler for the CastMessageBus message event
+        window.messageBus.onMessage = function(event) {
+          console.log('Message [' + event.senderId + ']: ' + event.data);
+          // display the message from the sender
+          //displayText(event.data);
+          startPlaylist(event.data);
+          // inform all senders on the CastMessageBus of the incoming message event
+          // sender message listener will be invoked
+          window.messageBus.send(event.senderId, event.data);
+        }
+
+        // initialize the CastReceiverManager with an application status message
+        window.castReceiverManager.start({statusText: "Application is starting"});
+        console.log('Receiver Manager started');
+      };
+      
+      // utility function to display the text message in the input field
+      function displayText(text) {
+        console.log(text);
+        //document.getElementById("message").innerHTML=text;
+        window.castReceiverManager.setApplicationState(text);
+      };
+    </script>
+  </body>
+</html>
