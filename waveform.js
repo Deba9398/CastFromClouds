@@ -11,6 +11,7 @@
       this.container = options.container;
       this.canvas = options.canvas;
       this.data = options.data || [];
+        this.lastDrawn = 0;
       this.outerColor = options.outerColor || "transparent";
       this.innerColor = options.innerColor || "#000000";
       this.interpolate = true;
@@ -60,33 +61,34 @@
     Waveform.prototype.redraw = function() {
         
       var d, i, middle, t, _i, _len, _ref, _results;
-      this.clear();
+      //this.clear();
       if (typeof this.innerColor === "function") {
         this.context.fillStyle = this.innerColor();
       } else {
         this.context.fillStyle = this.innerColor;
       }
       middle = this.height;
-      i = 0;
+      i = this.lastDrawn;
       _ref = this.data;
       _results = [];
-      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+      for (_i = this.lastDrawn, _len = _ref.length; _i < _len; _i++) {
         d = _ref[_i];
         t = this.width / this.data.length;
         if (typeof this.innerColor === "function") {
           this.context.fillStyle = this.innerColor(i / this.width, d);
         }
-        this.context.clearRect(t * i, middle - middle * d, t, middle * d);
-        this.context.fillRect(t * i, middle - middle * d, t, middle * d);
+          if(this.played(i/this.width)) {
+              this.lastDrawn = i;
+          }
+          this.context.clearRect(t * i, middle - middle * d, t, middle * d);
+          this.context.fillRect(t * i, middle - middle * d, t, middle * d);
         _results.push(i++);
       }
       return _results;
     };
 
     Waveform.prototype.clear = function() {
-      this.context.fillStyle = this.outerColor;
       this.context.clearRect(0, 0, this.width, this.height);
-      return this.context.fillRect(0, 0, this.width, this.height);
     };
 
     Waveform.prototype.patchCanvasForIE = function(canvas) {
@@ -164,7 +166,7 @@
           if (!innerColorWasSet) {
             stream = this;
             that.innerColor = function(x, y) {
-              if (x < stream.position / stream.durationEstimate) {
+              if (x <= stream.position / stream.durationEstimate) {
                 return options.playedColor || "rgba(255,255,255, 0.8)";
               } else if (x < stream.bytesLoaded / stream.bytesTotal) {
                 return options.loadedColor || "rgba(255,255,255, 0.2)";
@@ -172,6 +174,9 @@
                 return options.defaultColor || "rgba(255, 255, 255, 0.1)";
               }
             };
+              that.played = function(x) {
+                  return (x <= stream.position / stream.durationEstimate);
+              };
             innerColorWasSet = true;
           }
           return this.redraw;
