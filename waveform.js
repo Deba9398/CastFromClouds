@@ -12,6 +12,8 @@
       this.canvas = options.canvas;
       this.data = options.data || [];
         this.lastDrawn = 0;
+        this.stream = null;
+        this.fullyLoadedDrawn = false;
       this.outerColor = options.outerColor || "transparent";
       this.innerColor = options.innerColor || "#000000";
       this.interpolate = true;
@@ -77,11 +79,22 @@
         if (typeof this.innerColor === "function") {
           this.context.fillStyle = this.innerColor(i / this.width, d);
         }
-          if(this.played(i/this.width)) {
-              this.lastDrawn = i;
+          if(typeof this.loaded === "function" && this.loaded() && this.fullyLoadedDrawn) {
+              if (this.played(i / this.width)) {
+                  this.lastDrawn = i;
+                  this.context.clearRect(t * i, middle - middle * d, t, middle * d);
+                  this.context.fillRect(t * i, middle - middle * d, t, middle * d);
+              }
+              else
+                break;
           }
-          this.context.clearRect(t * i, middle - middle * d, t, middle * d);
-          this.context.fillRect(t * i, middle - middle * d, t, middle * d);
+          else {
+              this.context.clearRect(t * i, middle - middle * d, t, middle * d);
+              this.context.fillRect(t * i, middle - middle * d, t, middle * d);
+              if(i == _len && this.loaded())
+                this.fullyLoadedDrawn = true;
+          }
+          
         _results.push(i++);
       }
       return _results;
@@ -162,9 +175,8 @@
       return {
         whileplaying: this.redraw,
         whileloading: function() {
-          var stream;
           if (!innerColorWasSet) {
-            stream = this;
+              stream = this;
             that.innerColor = function(x, y) {
               if (x <= stream.position / stream.durationEstimate) {
                 return options.playedColor || "rgba(255,255,255, 0.8)";
@@ -174,6 +186,10 @@
                 return options.defaultColor || "rgba(255, 255, 255, 0.1)";
               }
             };
+              that.loaded = function() {
+                  return (stream.bytesLoaded == stream.bytesTotal);
+                  
+              };
               that.played = function(x) {
                   return (x <= stream.position / stream.durationEstimate);
               };
