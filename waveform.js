@@ -69,6 +69,7 @@
       } else {
         this.context.fillStyle = this.innerColor;
       }
+        $('#currentTime').text(this.streamPosition());
       middle = this.height;
       i = this.lastDrawn;
       _ref = this.data;
@@ -82,7 +83,7 @@
           if(typeof this.loaded === "function" && this.loaded() && this.fullyLoadedDrawn) {
               if (this.played(i / this.width)) {
                   this.lastDrawn = i;
-                  this.context.clearRect(t * i, middle - middle * d, t, middle * d);
+                  //this.context.clearRect(t * i, middle - middle * d, t, middle * d);
                   this.context.fillRect(t * i, middle - middle * d, t, middle * d);
               }
               else
@@ -179,11 +180,11 @@
               stream = this;
             that.innerColor = function(x, y) {
               if (x <= stream.position / stream.durationEstimate) {
-                return options.playedColor || "rgba(255,255,255, 0.8)";
+                return options.playedColor || "rgba(255,255,255, 1)";
               } else if (x < stream.bytesLoaded / stream.bytesTotal) {
-                return options.loadedColor || "rgba(255,255,255, 0.2)";
+                return options.loadedColor || "rgba(100,100,100, 1)";
               } else {
-                return options.defaultColor || "rgba(255, 255, 255, 0.1)";
+                return options.defaultColor || "rgba(0, 0, 0, 1)";
               }
             };
               that.loaded = function() {
@@ -191,7 +192,10 @@
                   
               };
               that.played = function(x) {
-                  return (x <= stream.position / stream.durationEstimate);
+                  return (x <= (stream.position + 100) / stream.durationEstimate);
+              };
+              that.streamPosition = function () {
+                  return stream.position;
               };
             innerColorWasSet = true;
           }
