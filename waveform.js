@@ -69,7 +69,7 @@
       } else {
         this.context.fillStyle = this.innerColor;
       }
-        $('#currentTime').text(this.streamPosition());
+        //$('#currentTime').text(this.streamPosition());
       middle = this.height;
       i = this.lastDrawn;
       _ref = this.data;
