@@ -24,7 +24,7 @@
           throw "Either canvas or container option must be passed";
         }
       }
-      this.patchCanvasForIE(this.canvas);
+      //this.patchCanvasForIE(this.canvas);
       this.context = this.canvas.getContext("2d");
       this.width = parseInt(this.context.canvas.width, 10);
       this.height = parseInt(this.context.canvas.height, 10);
@@ -58,6 +58,7 @@
     };
 
     Waveform.prototype.redraw = function() {
+        
       var d, i, middle, t, _i, _len, _ref, _results;
       this.clear();
       if (typeof this.innerColor === "function") {
@@ -65,7 +66,7 @@
       } else {
         this.context.fillStyle = this.innerColor;
       }
-      middle = this.height / 2;
+      middle = this.height;
       i = 0;
       _ref = this.data;
       _results = [];
@@ -75,8 +76,8 @@
         if (typeof this.innerColor === "function") {
           this.context.fillStyle = this.innerColor(i / this.width, d);
         }
-        this.context.clearRect(t * i, middle - middle * d, t, middle * d * 2);
-        this.context.fillRect(t * i, middle - middle * d, t, middle * d * 2);
+        this.context.clearRect(t * i, middle - middle * d, t, middle * d);
+        this.context.fillRect(t * i, middle - middle * d, t, middle * d);
         _results.push(i++);
       }
       return _results;
@@ -152,9 +153,9 @@
     Waveform.prototype.optionsForSyncedStream = function(options) {
       var innerColorWasSet, that;
       if (options == null) {
-        options = {};
+          options = {};
+          innerColorWasSet = false;
       }
-      innerColorWasSet = false;
       that = this;
       return {
         whileplaying: this.redraw,
@@ -164,11 +165,11 @@
             stream = this;
             that.innerColor = function(x, y) {
               if (x < stream.position / stream.durationEstimate) {
-                return options.playedColor || "rgba(255,  102, 0, 0.8)";
+                return options.playedColor || "rgba(255,255,255, 0.8)";
               } else if (x < stream.bytesLoaded / stream.bytesTotal) {
-                return options.loadedColor || "rgba(0, 0, 0, 0.8)";
+                return options.loadedColor || "rgba(255,255,255, 0.2)";
               } else {
-                return options.defaultColor || "rgba(0, 0, 0, 0.4)";
+                return options.defaultColor || "rgba(255, 255, 255, 0.1)";
               }
             };
             innerColorWasSet = true;
