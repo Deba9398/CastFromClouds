@@ -121,10 +121,10 @@
 
       #artworkAndProgressDiv {
         float: left;
-        border-radius: 10px;
+        /*border-radius: 10px;*/
         margin-right: 40px;
         overflow: hidden;
-        box-shadow: 2px 2px 10px 0px rgba(0,0,0,0.50);
+        box-shadow: 2px 2px 10px 0 rgba(0,0,0,0.75);
       }
     </style>
     <title>Receiver</title>
@@ -139,7 +139,6 @@
     <div id="nowPlaying">
         <div id="artworkAndProgressDiv">
             <img src="data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=" id="albumArtwork"/>
-            <div id="progressBar"></div>
         </div>
         <div id="songDetails">
             <div id="songNameHeader"></div>
@@ -213,6 +212,13 @@
             var time = new Date(track.duration);
             $('#totalTime').text(time.getMinutes() + ":" + ("0" + time.getSeconds()).slice(-2));
             //$('#progressBar').fadeIn();
+
+            $('#waveform canvas').remove();
+            
+            waveform = new Waveform({
+                container: document.getElementById("waveform"),
+                innerColor: "transparent"
+            });
 
             waveform.dataFromSoundCloudTrack(track);
             var streamOptions = waveform.optionsForSyncedStream();

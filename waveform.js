@@ -57,21 +57,22 @@
       } else {
         this.setDataInterpolated(options.data);
       }
-      return this.redraw();
+        this.clear();
+        return this.redraw();
     };
 
     Waveform.prototype.redraw = function() {
         
       var d, i, middle, t, _i, _len, _ref, _results;
-      //this.clear();
       if (typeof this.innerColor === "function") {
         this.context.fillStyle = this.innerColor();
       } else {
         this.context.fillStyle = this.innerColor;
       }
-        //$('#currentTime').text(this.streamPosition());
+        
+        $('#currentTime').text(this.streamPosition());
       middle = this.height;
-      i = this.lastDrawn;
+      i = this.lastDrawn - 1;
       _ref = this.data;
       _results = [];
       for (_i = this.lastDrawn, _len = _ref.length; _i < _len; _i++) {
@@ -85,19 +86,19 @@
                   this.lastDrawn = i;
                   //this.context.clearRect(t * i, middle - middle * d, t, middle * d);
                   this.context.fillRect(t * i, middle - middle * d, t, middle * d);
+                  _results.push(i++);
               }
-              else
-                break;
+              else {
+                  break;
+              }
           }
           else {
-              console.log(this.loaded());
               this.context.clearRect(t * i, middle - middle * d, t, middle * d);
               this.context.fillRect(t * i, middle - middle * d, t, middle * d);
+              _results.push(i++);
               if(i == (_len-1) && this.loaded())
                 this.fullyLoadedDrawn = true;
           }
-          
-        _results.push(i++);
       }
       return _results;
     };
@@ -181,9 +182,9 @@
               stream = this;
             that.innerColor = function(x, y) {
               if (x <= stream.position / stream.durationEstimate) {
-                return options.playedColor || "rgba(255,255,255, 1)";
+                return options.playedColor || "rgba(150,150,150, 1)";
               } else if (x < stream.bytesLoaded / stream.bytesTotal) {
-                return options.loadedColor || "rgba(100,100,100, 1)";
+                return options.loadedColor || "rgba(60,60,60, 1)";
               } else {
                 return options.defaultColor || "rgba(0, 0, 0, 1)";
               }
