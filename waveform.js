@@ -90,9 +90,10 @@
                 break;
           }
           else {
+              console.log(this.loaded());
               this.context.clearRect(t * i, middle - middle * d, t, middle * d);
               this.context.fillRect(t * i, middle - middle * d, t, middle * d);
-              if(i == _len && this.loaded())
+              if(i == (_len-1) && this.loaded())
                 this.fullyLoadedDrawn = true;
           }
           
@@ -188,8 +189,7 @@
               }
             };
               that.loaded = function() {
-                  return (stream.bytesLoaded == stream.bytesTotal);
-                  
+                  return (stream.bytesLoaded >= stream.bytesTotal);
               };
               that.played = function(x) {
                   return (x <= (stream.position + 100) / stream.durationEstimate);
