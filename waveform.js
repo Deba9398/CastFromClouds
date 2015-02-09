@@ -70,12 +70,12 @@
         this.context.fillStyle = this.innerColor;
       }
         
-        $('#currentTime').text(this.streamPosition());
-      middle = this.height;
+        //$('#currentTime').text(this.streamPosition());
+      middle = this.height / 2;
       i = this.lastDrawn - 1;
       _ref = this.data;
       _results = [];
-      for (_i = this.lastDrawn, _len = _ref.length; _i < _len; _i++) {
+      for (_i = (this.lastDrawn - 1), _len = _ref.length; _i < _len; _i++) {
         d = _ref[_i];
         t = this.width / this.data.length;
         if (typeof this.innerColor === "function") {
@@ -84,8 +84,12 @@
           if(typeof this.loaded === "function" && this.loaded() && this.fullyLoadedDrawn) {
               if (this.played(i / this.width)) {
                   this.lastDrawn = i;
-                  //this.context.clearRect(t * i, middle - middle * d, t, middle * d);
-                  this.context.fillRect(t * i, middle - middle * d, t, middle * d);
+
+                  if (typeof this.innerColor === "function") {this.context.fillStyle = this.innerColor(i / this.width, d);}
+                  this.context.clearRect(t * i, middle - (middle * d), t, middle * d * 1.6);
+                  this.context.fillRect(t * i, middle - (middle * d), t, middle * d * 1);
+                  if (typeof this.innerColor === "function") {this.context.fillStyle = this.innerColor(i / this.width, d, 2);}
+                  this.context.fillRect(t * i, middle + 1, t, middle * d * 0.5);
                   _results.push(i++);
               }
               else {
@@ -93,8 +97,11 @@
               }
           }
           else {
-              this.context.clearRect(t * i, middle - middle * d, t, middle * d);
-              this.context.fillRect(t * i, middle - middle * d, t, middle * d);
+            if (typeof this.innerColor === "function") {this.context.fillStyle = this.innerColor(i / this.width, d);}
+              this.context.clearRect(t * i, middle - middle * d, t, middle * d * 1.6);
+              this.context.fillRect(t * i, middle - middle * d, t, middle * d * 1);
+              if (typeof this.innerColor === "function") {this.context.fillStyle = this.innerColor(i / this.width, d, 2);}
+              this.context.fillRect(t * i, middle + 1, t, middle * d * 0.5);
               _results.push(i++);
               if(i == (_len-1) && this.loaded())
                 this.fullyLoadedDrawn = true;
@@ -180,13 +187,13 @@
         whileloading: function() {
           if (!innerColorWasSet) {
               stream = this;
-            that.innerColor = function(x, y) {
+            that.innerColor = function(x, y, z) {
               if (x <= stream.position / stream.durationEstimate) {
-                return options.playedColor || "rgba(150,150,150, 1)";
+                return (z == 2) ? "rgba(255,255,255,0.35)" : "rgba(255,255,255, 0.75)";
               } else if (x < stream.bytesLoaded / stream.bytesTotal) {
-                return options.loadedColor || "rgba(60,60,60, 1)";
+                return (z == 2) ? "rgba(255,255,255,0.15)" : "rgba(255,255,255, 0.3)";
               } else {
-                return options.defaultColor || "rgba(0, 0, 0, 1)";
+                return (z == 2) ? "rgba(255,255,255,0.05)" : "rgba(255,255,255, 0.1)";
               }
             };
               that.loaded = function() {
